@@ -1,3 +1,5 @@
+scalar DateTime
+
 type Query {
   info: String!
   feed(filter: String, skip: Int, first: Int, orderBy: LinkOrderByInput): Feed!
@@ -19,6 +21,7 @@ type Mutation {
 
 type Link {
   id: ID!
+  createdAt: DateTime!
   description: String!
   url: String!
   postedBy: User
