@@ -36,7 +36,11 @@ class CreateLink extends Component {
           />
         </div>
         {/* wraps the buttons around the Mutation Component and passes in the variables */}
-        <Mutation mutation={POST_MUTATION} variables={{ description, url }}>
+        <Mutation
+          mutation={POST_MUTATION}
+          variables={{ description, url }}
+          onCompleted={() => this.props.history('/')}
+        >
           {/* 
             calls the function that Apollo injects into <Mutation /> component's
             render prop function inside onClick button's event
