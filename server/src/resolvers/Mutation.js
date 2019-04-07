@@ -66,13 +66,24 @@ async function login(parent, args, context, info) {
   };
 }
 
-function post(parent, args, context, info) {
-  const userId = getUserId(context);
-  return context.prisma.createLink({
-    url: args.url,
-    description: args.description,
-    postedBy: { connect: { id: userId } }
-  });
+/**
+ * extracting the userId from the Authorization header of the request
+ * and using it to directly connect it with the Link that's created.
+ *
+ * *NOTE*
+ * * the getUserId will throw an error if the field is not provided
+ * * or no valid token could be extracted
+ * @param {*} parent
+ * @param {*} param1
+ * @param {*} ctx
+ * @param {*} info
+ */
+function post(parent, { url, description }, ctx, info) {
+  const userId = getUserId(ctx);
+  return ctx.db.mutation.createLink(
+    { data: { url, description, postedBy: { connect: { id: userId } } } },
+    info
+  );
 }
 
 module.exports = {
