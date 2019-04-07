@@ -8,6 +8,8 @@ import { ApolloClient } from 'apollo-client';
 import { createHttpLink } from 'apollo-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { BrowserRouter } from 'react-router-dom';
+import { AUTH_TOKEN } from './constants';
+import { setContext } from 'apollo-link-context';
 
 // httpLink will connect ApolloClient instance with
 // GraphQL API
@@ -16,8 +18,21 @@ const httpLink = createHttpLink({
 });
 
 const client = new ApolloClient({
-  link: httpLink,
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache()
+});
+
+// middleware will be invoked every time ApolloClient sends a request
+// to the server. ApolloLinks allow you to create middlewares that let you
+// modify requests before they are sent to the server
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem(AUTH_TOKEN);
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : ''
+    }
+  };
 });
 
 // App is wrapped with the higher-order component
