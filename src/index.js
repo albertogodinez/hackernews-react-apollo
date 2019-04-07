@@ -17,11 +17,6 @@ const httpLink = createHttpLink({
   uri: 'http://localhost:4000'
 });
 
-const client = new ApolloClient({
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache()
-});
-
 // middleware will be invoked every time ApolloClient sends a request
 // to the server. ApolloLinks allow you to create middlewares that let you
 // modify requests before they are sent to the server
@@ -33,6 +28,11 @@ const authLink = setContext((_, { headers }) => {
       authorization: token ? `Bearer ${token}` : ''
     }
   };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache()
 });
 
 // App is wrapped with the higher-order component

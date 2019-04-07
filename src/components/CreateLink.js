@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Mutation } from 'react-apollo';
+import { FEED_QUERY } from './LinkList';
 import gql from 'graphql-tag';
 
 /**
@@ -39,7 +40,15 @@ class CreateLink extends Component {
         <Mutation
           mutation={POST_MUTATION}
           variables={{ description, url }}
-          onCompleted={() => this.props.history('/')}
+          onCompleted={() => this.props.history.push('/')}
+          update={(store, { data: { post } }) => {
+            const data = store.readQuery({ query: FEED_QUERY });
+            data.feed.links.unshift(post);
+            store.writeQuery({
+              query: FEED_QUERY,
+              data
+            });
+          }}
         >
           {/* 
             calls the function that Apollo injects into <Mutation /> component's
