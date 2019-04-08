@@ -1,38 +1,17 @@
-// link: (parent, args) => {
-//   const link = links.find(link => {
-//     return link.id === args.id;
-//   });
-//   return link;
-// }
-
 async function feed(root, args, context, info) {
-  // the feed filters out those that don't contains
-  // the filter string in the description or url
-  const where = args.filter
-    ? {
-        OR: [
-          { description_contains: args.filter },
-          { url_contains: args.filter }
-        ]
-      }
+  const { filter, first, skip } = args; // destructure input arguments
+
+  // A link is only returned if either its url contains the provided filter
+  // OR
+  // its description contains the provided filter
+  const where = filter
+    ? { OR: [{ url_contains: filter }, { description_contains: filter }] }
     : {};
 
-  const links = await context.prisma.links({
-    where,
-    skip: args.skip,
-    first: args.first,
-    orderBy: args.orderBy
-  });
-  const count = await context.prisma
-    // linksConnection querys the prisma client API to retrieve the
-    // total number of Link elements currently stored in the database
-    .linksConnection({
-      where
-    })
-    .aggregate()
-    .count();
+  const queriedLinks = await ctx.db.query.links({ first, skip, where });
+
   return {
-    links,
+    linkIds: queriedLinks.map(link => link.id),
     count
   };
 }
