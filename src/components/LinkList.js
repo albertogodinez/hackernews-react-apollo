@@ -23,6 +23,33 @@ const NEW_LINKS_SUBSCRIPTION = gql`
     }
   }
 `;
+
+const NEW_VOTES_SUBSCRIPTION = gql`
+  subscription {
+    newVote {
+      id
+      link {
+        id
+        url
+        description
+        createdAt
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+      user {
+        id
+      }
+    }
+  }
+`;
 class LinkList extends Component {
   _updateCacheAfterVote = (store, create, linkId) => {
     const data = store.readQuery({ query: FEED_QUERY });
@@ -31,6 +58,12 @@ class LinkList extends Component {
     votedLink.votes = create.link.votes;
 
     store.writeQuery({ query: FEED_QUERY, data });
+  };
+
+  _subscribeToNewVotes = subscribeToMore => {
+    subscribeToMore({
+      document: NEW_VOTES_SUBSCRIPTION
+    });
   };
 
   /**
@@ -71,6 +104,7 @@ class LinkList extends Component {
           if (error) return <div>Error</div>;
 
           this._subscribeToNewLinks(subscribeToMore);
+          this._subscribeToNewVotes(subscribeToMore);
 
           const linksToRender = data.feed.links;
 
