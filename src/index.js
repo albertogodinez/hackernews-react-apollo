@@ -10,11 +10,26 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { BrowserRouter } from 'react-router-dom';
 import { AUTH_TOKEN } from './constants';
 import { setContext } from 'apollo-link-context';
+import { split } from 'apollo-link';
+import { WebSocketLink } from 'apollo-link-ws';
+import { getMainDefinition } from 'apollo-utilities';
 
 // httpLink will connect ApolloClient instance with
 // GraphQL API
 const httpLink = createHttpLink({
   uri: 'http://localhost:4000'
+});
+
+// instantiating a WebSocketLink that knows the
+// subscriptions endpoint.
+const wsLink = new WebSocketLink({
+  uri: 'ws://localhost:4000',
+  options: {
+    reconnect: true,
+    connectionParams: {
+      authToken: localStorage.getItem(AUTH_TOKEN)
+    }
+  }
 });
 
 // middleware will be invoked every time ApolloClient sends a request
@@ -30,8 +45,18 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
+// split is used to "route" to a specific middleware link
+const link = split(
+  ({ query }) => {
+    const { kind, operation } = getMainDefinition(query);
+    return kind === 'OperationDefinition' && operation === 'subscription';
+  },
+  wsLink,
+  authLink.concat(httpLink)
+);
+
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link,
   cache: new InMemoryCache()
 });
 
